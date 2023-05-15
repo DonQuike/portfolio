@@ -1,0 +1,73 @@
+---
+title: "Actividad"
+author: "Enrique Robles Medina"
+date: "2023-03-11"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r, include=FALSE}
+library(tidyverse) #Carga de librerias previamente instaladas
+library(janitor)
+WorldHappiness_Corruption_2015_2020 <- read.csv("WorldHappiness_Corruption_2015_2020.csv")
+c_wh <- clean_names(WorldHappiness_Corruption_2015_2020) #Limpieza de nombres de columnas
+```
+
+
+
+# Actvidad UNIR 
+
+
+
+## Resumen estadístico de Data Set
+```{r, echo=FALSE}
+summary(c_wh) #Resumen estadístico
+```
+```{r, include=FALSE}
+o_wh <- c_wh %>% #Pipe con data set
+  select(-c(family:cpi_score)) %>% #Se eliminan columnas no relevantes al estudio
+  arrange(desc(gdp_per_capita)) %>% #Ordenado de dataset de manera por GDP de manera descendente 
+  mutate(gdp_happiness_level = if_else(gdp_per_capita >= 0.9198 & happiness_score >= 5.495, 'high', 'low')) 
+  #Se crea una columna que dependiendo el gdp y el nivel de felicidad es alta o baja
+  o_wh$gdp_happiness_level <- as.factor(o_wh$gdp_happiness_level) #Se cambia la variable creada en factores
+```
+
+
+
+
+
+ Se manipulan los datos y se muestra el resumen estadístico del Data Set modificado
+```{r, echo=FALSE}
+summary(o_wh)
+```
+
+
+
+
+## Gráfica ilustrando condiciones
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, tidy.opts=FALSE}
+o_wh %>% 
+  ggplot(aes(gdp_per_capita, happiness_score, colour = gdp_happiness_level)) + geom_point(mapping = aes(x = gdp_per_capita, y = happiness_score)) + geom_smooth(method=lm, se = FALSE, linewidth = 1, col = 'black')
+  #Grafica con linea de tendencia, se hace diferencia con base a gdp_happiness_level
+```
+
+
+
+
+## Se calculan la cantidad de datos y sus porcentajes
+
+```{r, echo=FALSE}
+hypo <- count(o_wh,gdp_happiness_level, name = 'total') %>% 
+  mutate(percent = total/1056)
+head(hypo)
+```
+
+
+
+
+## Estudio de prueba binomial
+```{r, echo=FALSE}
+binom.test(428,1056,p=0.4,alternative="greater")
+```
+Se concluye que con los datos proporcionados podemos negar la hipótesis alternativa
